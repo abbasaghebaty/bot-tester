@@ -1,12 +1,45 @@
+function positiveNumber(value, fallback) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number) || number <= 0) {
+    return fallback;
+  }
+
+  return number;
+}
+
 export function getConfig(env) {
-  const maxResults = Number(env.MAX_RESULTS ?? 5);
-  const cacheTtl = Number(env.CACHE_TTL_SECONDS ?? 60);
+  const maxResults = positiveNumber(
+    env.MAX_RESULTS,
+    5
+  );
+
+  const cacheTtlSeconds = positiveNumber(
+    env.CACHE_TTL_SECONDS,
+    60
+  );
+
+  const fuzzySearch = String(
+    env.FUZZY_SEARCH ?? "true"
+  ).toLowerCase() === "true";
 
   return {
-    googleSheetId: env.GOOGLE_SHEET_ID,
-    googleSheetGid: env.GOOGLE_SHEET_GID || "",
-    telegramBotToken: env.TELEGRAM_BOT_TOKEN,
-    cacheTtlSeconds: Number.isFinite(cacheTtl) ? cacheTtl : 60,
-    maxResults: Number.isFinite(maxResults) && maxResults > 0 ? maxResults : 5
+    googleSheetId: String(
+      env.GOOGLE_SHEET_ID ?? ""
+    ).trim(),
+
+    googleSheetGid: String(
+      env.GOOGLE_SHEET_GID ?? ""
+    ).trim(),
+
+    telegramBotToken: String(
+      env.TELEGRAM_BOT_TOKEN ?? ""
+    ).trim(),
+
+    cacheTtlSeconds,
+
+    maxResults,
+
+    fuzzySearch
   };
 }
