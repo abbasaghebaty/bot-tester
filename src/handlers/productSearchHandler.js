@@ -8,17 +8,26 @@ function escapeHtml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function formatProduct(product) {
   const lines = [
     `<b>${escapeHtml(product.name)}</b>`,
     "",
-    `قیمت ما: ${formatPrice(product.ourPrice)}`,
-    `قیمت مصرف‌کننده: ${formatPrice(product.consumerPrice)}`,
-    `تخفیف: ${formatDiscount(product.discount)}`,
-    `قیمت نهایی: ${formatPrice(product.finalConsumerPrice)}`
+    `قیمت ما: ${formatPrice(
+      product.ourPrice
+    )}`,
+    `قیمت مصرف‌کننده: ${formatPrice(
+      product.consumerPrice
+    )}`,
+    `تخفیف: ${formatDiscount(
+      product.discount
+    )}`,
+    `قیمت نهایی: ${formatPrice(
+      product.finalConsumerPrice
+    )}`
   ];
 
   return lines.join("\n");
@@ -28,8 +37,14 @@ export function createProductSearchHandler({
   productService,
   telegramService
 }) {
-  return async function productSearchHandler({ chatId, query }) {
-    const products = await productService.search(query);
+  return async function productSearchHandler({
+    chatId,
+    query
+  }) {
+    const products =
+      await productService.search(
+        query
+      );
 
     if (!products.length) {
       await telegramService.sendMessage(
@@ -47,7 +62,10 @@ export function createProductSearchHandler({
       .map(formatProduct)
       .join("\n\n");
 
-    await telegramService.sendMessage(chatId, text);
+    await telegramService.sendMessage(
+      chatId,
+      text
+    );
 
     return {
       found: true,
