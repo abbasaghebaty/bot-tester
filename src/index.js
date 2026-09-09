@@ -4,7 +4,13 @@ import { ProductService } from "./services/productService.js";
 import { TelegramService } from "./telegram/telegram.js";
 import { createProductSearchHandler } from "./handlers/productSearchHandler.js";
 
+let appInstance = null;
+
 function createApp(env) {
+  if (appInstance) {
+    return appInstance;
+  }
+
   const config = getConfig(env);
 
   const sheetsService = new GoogleSheetsService({
@@ -15,7 +21,8 @@ function createApp(env) {
 
   const productService = new ProductService({
     sheetsService,
-    maxResults: config.maxResults
+    maxResults: config.maxResults,
+    fuzzySearch: config.fuzzySearch
   });
 
   const telegramService = new TelegramService(
@@ -27,12 +34,45 @@ function createApp(env) {
     telegramService
   });
 
-  return {
+  appInstance = {
     config,
     sheetsService,
     productService,
     telegramService,
     productSearchHandler
+  };
+
+  return appInstance;
+}
+
+function isTelegramUpdate(update) {
+  return Boolean(update && typeof update === "object");
+}
+
+function getTextMessage(update) {
+  const message = update?.message;
+
+  if (!message) {
+    return null;
+  }
+
+  const chatId = message?.chat?.id;
+
+  if (!chatId) {
+    return null;
+  }
+
+  const text = typeof message?.text === "string"
+    ? message.text.trim()
+    : "";
+
+  if (!text) {
+    return null;
+  }
+
+  return {
+    chatId,
+    text
   };
 }
 
@@ -44,7 +84,8 @@ export default {
       if (request.method === "GET" && url.pathname === "/") {
         return Response.json({
           success: true,
-          service: "google-sheets-product-search"
+          service: "google-sheets-product-search",
+          status: "ok"
         });
       }
 
@@ -54,23 +95,35 @@ export default {
             success: false,
             error: "Route not found"
           },
-          { status: 404 }
+          {
+            status: 404
+          }
         );
       }
 
       const update = await request.json();
 
-      const message = update?.message;
-      const chatId = message?.chat?.id;
-      const text = message?.text;
-
-      if (!chatId || !text) {
-        return Response.json({ success: true });
+      if (!isTelegramUpdate(update)) {
+        return Response.json({
+          success: true
+        });
       }
 
-      // دستورهای ربات را برای منطق اصلی ربات خودتان نگه دارید.
+      const message = getTextMessage(update);
+
+      if (!message) {
+        return Response.json({
+          success: true
+        });
+      }
+
+      const { chatId, text } = message;
+
+      // دستورات Telegram به موتور جستجوی محصول ارسال نمی‌شوند.
       if (text.startsWith("/")) {
-        return Response.json({ success: true });
+        return Response.json({
+          success: true
+        });
       }
 
       const app = createApp(env);
@@ -80,16 +133,20 @@ export default {
         query: text
       });
 
-      return Response.json({ success: true });
+      return Response.json({
+        success: true
+      });
     } catch (error) {
-      console.error(error);
+      console.error("Webhook error:", error);
 
       return Response.json(
         {
           success: false,
-          error: error?.message ?? "Internal server error"
+          error: "Internal server error"
         },
-        { status: 500 }
+        {
+          status: 500
+        }
       );
     }
   }
