@@ -1,4 +1,4 @@
-name = "google-sheets-product-search"
+name = 'bot-tester'
 main = "src/index.js"
 compatibility_date = "2026-09-09"
 
