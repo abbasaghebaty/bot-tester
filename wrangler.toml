@@ -1,0 +1,9 @@
+name = "google-sheets-product-search"
+main = "src/index.js"
+compatibility_date = "2026-09-09"
+
+[vars]
+GOOGLE_SHEET_ID = "1v6Y89Zys3DjHLEV0dWBqGL3QfKgc5STXC_YUnrBHjxQ"
+GOOGLE_SHEET_GID = ""
+CACHE_TTL_SECONDS = "60"
+MAX_RESULTS = "5"
