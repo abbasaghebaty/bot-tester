@@ -9,8 +9,3 @@ CACHE_TTL_SECONDS = "60"
 MAX_RESULTS = "5"
 FUZZY_SEARCH = "true"
 
-
-[observability.logs]
-enabled = false
-invocation_logs = true
-
